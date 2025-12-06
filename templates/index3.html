@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Image Classifier</title>
+    <link rel="shortcut icon" href="data:image/png;base64," />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <style>
+        body {
+            padding: 0;
+            margin: 0;
+            background-color: rgb(29, 29, 29);
+            color: white;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+        }
+        .interface {
+            width: 60vw;
+            text-align: center;
+            padding: 1rem;
+            margin: 0 auto;
+        }
+        #selectImage {
+            display: none;
+        }
+        #triggerSelectImageInput {
+            display: block;
+            margin: 0 auto;
+            padding: 1rem;
+            background-image: linear-gradient(to right, #00b09b, #96c93d);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        img {
+            margin-top: 3rem;
+            height: 360px;
+            background: linear-gradient(white, white), linear-gradient(60deg, orange 0%, orange 3.5%, white 3.5%, white 7%, hotpink 7%, hotpink 10.5%, black 10.5%, black 14%, brown 14%, brown 17.5%, aqua 17.5%, aqua 21%, green 21%, green 25%, orange 25%, orange 28.5%, white 28.5%, white 32%, hotpink 32%, hotpink 35.5%, black 35.5%, black 39%, brown 39%, brown 42.5%, aqua 42.5%, aqua 46%, green 46%, green 50%, orange 50%, orange 53.5%, white 53.5%, white 57%, hotpink 57%, hotpink 60.5%, black 60.5%, black 64%, brown 64%, brown 67.5%, aqua 67.5%, aqua 71%, green 71%, green 75%, orange 75%, orange 78.5%, white 78.5%, white 82%, hotpink 82%, hotpink 85.5%, black 85.5%, black 89%, brown 89%, brown 92.5%, aqua 92.5%, aqua 96%, green 96%, green 100%);
+            padding: 10px 20px;
+            border-radius: 20px;
+            background-origin: content-box, padding-box;
+            background-clip: content-box, padding-box;
+        }
+        #results {
+            margin-top: 3rem;
+            text-align: center;
+            background-color: rgba(161, 180, 255, 0.204);
+            padding: 1rem 0;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="interface">
+        <h1>Image Classifier</h1>
+        <p>
+            This is a demonstration of Image Classification using Machine Learning.
+            To get started, please upload an image. The image will be classified and you will get a "Looks Like" outcome which will signify what the algorithm thinks the image is. You will also get a "Confidence" value which will show you how confident the algorithm is in its classification.
+        </p>
+        <input type="file" name="selectImage" id="selectImage" accept="image/*" />
+        <button id="triggerSelectImageInput">Select Image</button>
+        <p id="results"></p>
+    </div>
+
+    <div id="loading"><div class="loader"></div></div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ml5/0.6.0/ml5.min.js"></script>
+
+    <script>
+        // get the trigger button
+        const triggerSelectImageInput = document.getElementById("triggerSelectImageInput");
+        // get the input button
+        const selectImage = document.getElementById("selectImage");
+
+        // attach the trigger button to the input button
+        triggerSelectImageInput.addEventListener("click", () => {
+            selectImage.click();
+        });
+
+        // Initialize the Image Classifier method with MobileNet
+        const classifier = ml5.imageClassifier("MobileNet", modelReady);
+
+        // A function to be called when the model has been loaded
+        function modelReady() {
+            console.log("Model Loaded!");
+        }
+
+        // Function to get height and width from Data URL
+        const getHeightAndWidthFromDataUrl = (dataURL) =>
+            new Promise((resolve) => {
+                const img = new Image();
+                img.onload = () => {
+                    resolve({
+                        height: img.height,
+                        width: img.width
+                    });
+                };
+                img.src = dataURL;
+            });
+
+        selectImage.addEventListener("change", async () => {
+            // clear and hide the results
+            document.getElementById("results").style.display = "none";
+            document.getElementById("results").innerHTML = "";
+            // select all images from the body
+            const images = document.querySelectorAll("img");
+            // remove all images from the interface
+            images.forEach((image) => {
+                image.remove();
+            });
+            // get the selected image
+            const selectedImage = selectImage.files[0];
+
+            // get dimensions of the selected image
+            const imageURL = URL.createObjectURL(selectedImage);
+            const dimensions = await getHeightAndWidthFromDataUrl(imageURL);
+
+            // create a new image element
+            const newImage = document.createElement("img");
+            // set an id to the image
+            newImage.id = "selectedImage";
+            // set the image source to the selected image
+            newImage.src = imageURL;
+
+            // set the height to 360 pixels
+            newImage.height = 360;
+
+            // set the width according to the aspect ratio
+            newImage.width = dimensions.width * (360 / dimensions.height);
+
+            // append the image to the interface
+            document.querySelector(".interface").appendChild(newImage);
+
+            // classify the image
+            classifier.classify(document.getElementById("selectedImage"), gotResult);
+        });
+
+        // A function to be called when we get any errors and the results
+        function gotResult(error, results) {
+            // if there is an error
+            if (error) {
+                // log the error
+                console.error(error);
+            } else {
+                // log the results
+                console.log(results);
+                // get the results
+                const result = results[0];
+                // get the label
+                const label = result.label;
+                // get the confidence
+                const confidence = result.confidence.toFixed(2);
+                // create a new paragraph element
+                const newParagraph = document.createElement("p");
+                // set the text content of the paragraph
+                newParagraph.innerHTML = `<strong>Looks Like:</strong> ${label} &emsp; <strong>Confidence:</strong> ${confidence * 100}%`;
+                // append the paragraph to the interface
+                document.querySelector("#results").appendChild(newParagraph);
+                // show the results
+                document.querySelector("#results").style.display = "block";
+            }
+        }
+    </script>
+</body>
+</html>
