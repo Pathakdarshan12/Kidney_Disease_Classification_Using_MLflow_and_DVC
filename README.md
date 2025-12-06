@@ -43,7 +43,7 @@ The CI/CD pipeline automates the following stages:
 This project showcases the effective integration of advanced machine learning techniques with robust software engineering practices. By leveraging MLflow, DVC, Docker, and implementing a CI/CD pipeline, the project not only achieves high accuracy in kidney disease classification but also ensures scalability, reproducibility, and ease of deployment, making it a valuable asset in healthcare diagnostics.
 
 For more details about the project, feel free to explore the full project code and report on GitHub:
-[GitHub Repository](https://github.com/Pathakdarshan12/Kidney_Disease_Classification_MLflow_DVC.git)
+[GitHub Repository](https://https://github.com/Pathakdarshan12/Kidney_Disease_Classification_Using_MLflow_and_DVC)
 
 
 ## Workflows
